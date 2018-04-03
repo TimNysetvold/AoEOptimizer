@@ -23,7 +23,7 @@ num_techs=2;
 %immediately. The next two created also go on food.
 
 %1. Free food 2. farms 3. wood 4. gold 5. stone 6. build
-%vil_assignments=ceil(rand(max_Vils,1)*6);
+vil_assignments=ceil(rand(max_Vils,1)*6);
 vil_assignments(1:2)=[1,1];
 vil_assignments(3)=[6];
 vil_assignments(4:5)=[1,1];
@@ -150,10 +150,12 @@ sc_build_time=25; %actually 30, which is also worryingly high
 
 
 for step=1:36
-    
+     
     if (tc_occupied==0)&&(food_stockpile>=50)
-        vils=vils+1;
-        food_stockpile=food_stockpile-50; %villager cost
+        if (pop_cap~=1)
+            vils=vils+1;
+            food_stockpile=food_stockpile-50; %villager cost
+        end
     elseif tc_occupied>0
         tc_occupied=tc_occupied-1;
     end
@@ -272,6 +274,8 @@ for step=1:36
     
     if (num_houses>1)&&(num_houses*5<=(vils+num_mil))
         pop_cap=1;
+    else
+        pop_cap=0;
     end
     
     %% Start variable-based build timing
@@ -375,6 +379,7 @@ for step=1:36
             
         end
     end
+    
     if(wheelbarrow==0)&&(feudal==1)&&(step>=tech_times(2))
         
         if (food_stockpile>=wheelbarrow_food_cost)&&...
@@ -397,39 +402,45 @@ for step=1:36
     
     %% Start military spend script
     if (barracks==1)
-        if (gold_stockpile>=MaA_gold_cost)&&(food_stockpile>=MaA_food_cost)
-            num_MaA=num_MaA+1;
-            gold_stockpile==gold_stockpile-MaA_gold_cost;
-            food_stockpile==food_stockpile-MaA_food_cost;
-            MaA_turn=[MaA_turn,step];
-            military_spend=military_spend+MaA_food_cost+MaA_gold_cost;
-        elseif (wood_stockpile>=spearman_wood_cost)&&(food_stockpile>=spearman_food_cost)
-            num_spearmen=num_spearmen+1;
-            wood_stockpile==wood_stockpile-spearman_wood_cost;
-            food_stockpile==food_stockpile-spearman_food_cost;
-            military_spend=military_spend+spearman_wood_cost+spearman_food_cost;
+        if (pop_cap~=1)
+            if (gold_stockpile>=MaA_gold_cost)&&(food_stockpile>=MaA_food_cost)
+                num_MaA=num_MaA+1;
+                gold_stockpile==gold_stockpile-MaA_gold_cost;
+                food_stockpile==food_stockpile-MaA_food_cost;
+                MaA_turn=[MaA_turn,step];
+                military_spend=military_spend+MaA_food_cost+MaA_gold_cost;
+            elseif (wood_stockpile>=spearman_wood_cost)&&(food_stockpile>=spearman_food_cost)
+                num_spearmen=num_spearmen+1;
+                wood_stockpile==wood_stockpile-spearman_wood_cost;
+                food_stockpile==food_stockpile-spearman_food_cost;
+                military_spend=military_spend+spearman_wood_cost+spearman_food_cost;
+            end
         end
     end
     
     if (stable==1)
-        if (food_stockpile>=sc_food_cost)
-            num_sc=num_sc+1;
-            food_stockpile==food_stockpile-sc_food_cost;
-            military_spend=military_spend+sc_food_cost;
+        if (pop_cap~=1)
+            if (food_stockpile>=sc_food_cost)
+                num_sc=num_sc+1;
+                food_stockpile==food_stockpile-sc_food_cost;
+                military_spend=military_spend+sc_food_cost;
+            end
         end
     end
     
     if (archery==1)
-        if (gold_stockpile>=archer_gold_cost)&&(wood_stockpile>=archer_wood_cost)
-            num_archer=num_archer+1;
-            gold_stockpile==gold_stockpile-archer_gold_cost;
-            wood_stockpile==wood_stockpile-archer_wood_cost;
-            military_spend=military_spend+archer_wood_cost+archer_gold_cost;
-        elseif (wood_stockpile>=skirm_wood_cost)&&(food_stockpile>=skirm_food_cost)
-            num_skirms=num_skirms+1;
-            wood_stockpile==wood_stockpile-skirm_wood_cost;
-            food_stockpile==food_stockpile-skirm_food_cost;
-            military_spend=military_spend+skirm_wood_cost+skirm_food_cost;
+        if (pop_cap~=1)
+            if (gold_stockpile>=archer_gold_cost)&&(wood_stockpile>=archer_wood_cost)
+                num_archer=num_archer+1;
+                gold_stockpile==gold_stockpile-archer_gold_cost;
+                wood_stockpile==wood_stockpile-archer_wood_cost;
+                military_spend=military_spend+archer_wood_cost+archer_gold_cost;
+            elseif (wood_stockpile>=skirm_wood_cost)&&(food_stockpile>=skirm_food_cost)
+                num_skirms=num_skirms+1;
+                wood_stockpile==wood_stockpile-skirm_wood_cost;
+                food_stockpile==food_stockpile-skirm_food_cost;
+                military_spend=military_spend+skirm_wood_cost+skirm_food_cost;
+            end
         end
     end
     
