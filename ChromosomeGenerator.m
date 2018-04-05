@@ -1,6 +1,15 @@
 function [chromosome] = ChromosomeGenerator()
 %This function randomly generates an allowable chromosome.
 
+
+max_Vils=39; %One vil is created every 25 seconds of game time.
+%in 15 minutes, this works out to 36 vils, plus three starting vils.
+%However, we will research wheelbarrow (75 sec; -3 vils) and Feudal age
+%(130 sec, ~-5 vils), so we should probably actually have a total of 31 vils.
+num_buildings=8; %Currently, 8 buildings are implemented
+num_techs=2;    %Currently, 2 techs are implemented
+
+
 %This vector determines how vils are allocated. To make sure we have some
 %feasible designs, we put two on food and one on build (for a house)
 %immediately. The next two created also go on food.
