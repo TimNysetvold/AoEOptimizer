@@ -1,3 +1,6 @@
+function [chromosome] = ChromosomeGenerator()
+%This function randomly generates an allowable chromosome.
+
 %This vector determines how vils are allocated. To make sure we have some
 %feasible designs, we put two on food and one on build (for a house)
 %immediately. The next two created also go on food.
@@ -22,4 +25,4 @@ tech_times=ceil(rand(num_techs,1)*36);
 %The chromosome is made up of all of our choices.
 chromosome=[vil_assignments;build_times;tech_times];
 
-x=AoEModel(chromosome)
+end
