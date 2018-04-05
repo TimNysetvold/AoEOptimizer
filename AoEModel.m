@@ -1,3 +1,4 @@
+function [military_spend] = AoEModel(chromosome)
 %Rationale: In AoE, it is widely accepted that during the first 15 minutes
 %of the game, a player should create villagers constantly. How these
 %villagers are distributed determines the total amount of resources that
@@ -5,50 +6,25 @@
 %optimization, we determine which villagers should be allocated to which
 %activities to maximize military production.
 
-%In the future, I would like to add build/research order to the chromosome.
-%I think this shouldn't be too hard.
 
-
-%This
 
 max_Vils=39; %One vil is created every 25 seconds of game time.
 %in 15 minutes, this works out to 36 vils, plus three starting vils.
 %However, we will research wheelbarrow (75 sec; -3 vils) and Feudal age
 %(130 sec, ~-5 vils), so we should probably actually have a total of 31 vils.
-num_buildings=8;
-num_techs=2;
+num_buildings=8; %Currently, 8 buildings are implemented
+num_techs=2;    %Currently, 2 techs are implemented
 
-%This vector determines how vils are allocated. To make sure we have some
-%feasible designs, we put two on food and one on build (for a house)
-%immediately. The next two created also go on food.
-
-%1. Free food 2. farms 3. wood 4. gold 5. stone 6. build
-vil_assignments=ceil(rand(max_Vils,1)*6);
-vil_assignments(1:2)=[1,1];
-vil_assignments(3)=[6];
-vil_assignments(4:5)=[1,1];
-
-
-
-%This vector is made up of the first turns that we will attempt to build
-%a certain building. The slots, in order, represent:
-%1. mill 2. lumber camp 3. mining 4. farm 5. blacksmith 6. barracks 7.
-%archery range 8. stable
-
-build_times=ceil(rand(num_buildings,1)*36);
-
-%This vector is made up of the first turns that we will attempt to research
-%a certain technology.
-tech_times=ceil(rand(num_techs,1)*36);
-
-%The chromosome is made up of all of our choices.
-chromosome=[vil_assignments;build_times;tech_times];
-
+vil_assignments=chromosome(1:max_Vils);
+build_times=chromosome(max_Vils+1:max_Vils+num_buildings);
+tech_times=chromosome(max_Vils+num_buildings+1:max_Vils+num_buildings+num_techs);
 
 
 %% start static model
 total_time=15*60;
-tc_occupied=0;
+tc_occupied=1; %town center is not allowed to produce a villager the first
+%round; it must have the first 25 seconds to build the first villager
+pop_cap=0;
 vils=3;
 
 %Resource stockpiles
@@ -150,7 +126,9 @@ sc_build_time=25; %actually 30, which is also worryingly high
 
 
 for step=1:36
-     
+    
+    %% Villager creation step
+    %We attempt to build a villager first thing every step.
     if (tc_occupied==0)&&(food_stockpile>=50)
         if (pop_cap~=1)
             vils=vils+1;
@@ -159,129 +137,8 @@ for step=1:36
     elseif tc_occupied>0
         tc_occupied=tc_occupied-1;
     end
-    %% calculates the resources generated in a time period 
-    a_num_vil_wood=numel(find(vil_assignments(1:vils)==3));
-    a_num_vil_gold=numel(find(vil_assignments(1:vils)==4));
-    a_num_vil_stone=numel(find(vil_assignments(1:vils)==5));
-    a_num_vil_build=numel(find(vil_assignments(1:vils)==6));
     
-    %food gatherers are more complicated; they may require farms. 
-    %If we do not have enough, we re-route vils to free food, if 
-    %possible. If we do not have free food left, then we try to put people
-    %on farms. Any who don't have farms will sit idle until they get some.
-    
-    a_num_vil_free_food=0;
-    a_num_vil_farm=0;
-    
-    num_proposed_vil_farm=numel(find(vil_assignments(1:vils)==2));
-    num_proposed_vil_free_food=numel(find(vil_assignments(1:vils)==1));    
-    
-    if (free_food_gen_total<1500)
-        if (num_proposed_vil_farm<=num_farms)
-            a_num_vil_farm=num_proposed_vil_farm;
-            a_num_vil_free_food=num_proposed_vil_free_food;
-        else
-            a_num_vil_farm=num_farms;
-            a_num_vil_free_food=num_proposed_vil_free_food+num_proposed_vil_farm-num_farms;
-        end
-    elseif (free_food_gen_total>=1500)
-        if (num_proposed_vil_farm+num_proposed_vil_free_food<=num_farms)
-            a_num_vil_farm=num_proposed_vil_farm+num_proposed_vil_free_food;
-            a_num_vil_free_food=0;
-            a_num_vil_idle=0;
-        else
-            a_num_vil_farm=num_farms;
-            a_num_vil_idle=num_proposed_vil_farm+num_proposed_vil_free_food-num_farms;
-            a_num_vil_free_food=0;
-        end       
-    else
-        disp 'broken'
-    end
-    
-    %Determine how much food will be generated this round
-    free_food_gen=free_food_gather*a_num_vil_free_food;
-    free_food_gen_total=free_food_gen_total+free_food_gen;
-    farm_food_gen=farm_gather*a_num_vil_farm;
-    farm_food_gen_total=farm_food_gen_total+farm_food_gen;
-%     farm_food_available=num_farms*175
-    food_stockpile=farm_food_gen+free_food_gen+food_stockpile;
-    
-    %Determine how much wood has been generated this round
-    if(lumber==1)
-        wood_gen=wood_gather*a_num_vil_wood;
-    else
-        wood_gen=wood_gather_tc*a_num_vil_wood;
-    end
-    wood_stockpile=wood_gen+wood_stockpile;
-    
-    %determine gold generation
-    if(mining==1)
-        gold_gen=gold_gather*a_num_vil_gold;
-    else
-        gold_gen=gold_gather_tc*a_num_vil_gold;
-    end
-    gold_stockpile=gold_gen+gold_stockpile;
-    
-    %determine stone generation
-    if(mining==1)
-        stone_gen=stone_gather*a_num_vil_stone;
-    else
-        stone_gen=stone_gather_tc*a_num_vil_stone;
-    end
-    stone_stockpile=stone_gen+stone_stockpile;
-    
-    %determine build time generation
-    build_time_gen=a_num_vil_build*25;
-    build_stockpile=build_time_gen+build_stockpile;
-    
-    
-        
-    %% Start build script
-    %In order to run the game, we will create a set order in which we will
-    %build different buildings. Fortunately, there is a sequence which good
-    %players frequently use, so we have adopted that. The buildings, in
-    %order, are:
-    % 1. House 2. Mill (next to berries) 3. House 4. Lumber camp
-    % 5. House 6. (age up) 7. Mining camp 8. Barracks 9. Archery range 10.
-    % Blacksmith 10. Stables 11. Siege Workshop. 
-    % Maybe we can modify this as we go forwards. Ideally, we would include
-    % it as part of the chromosome.
-    
-    %We allow the computer to build a house immediately. No time
-    %requirement; this is not a variable (would create too many infeasible
-    %designs)
-    if(num_houses==0)
-        if (wood_stockpile>=house_wood_cost)&&(build_stockpile>=house_build_time)
-            num_houses=1;
-            house_turns=[house_turns,step];
-            wood_stockpile=wood_stockpile-house_wood_cost;
-            build_stockpile=build_stockpile-house_build_time;
-        else
-            %nothing; no house is built
-        end
-    %After the first house is built, we examine whether we should build another
-    %house at every step
-    elseif(num_houses*5-vils<=3)
-        %there are less than three empty population slots; try to build a
-        %house
-        if (wood_stockpile>=house_wood_cost)&&(build_stockpile>=house_build_time)
-            num_houses=num_houses+1;
-            house_turns=[house_turns,step];
-            wood_stockpile=wood_stockpile-house_wood_cost;
-            build_stockpile=build_stockpile-house_build_time;
-        end
-    end
-    
-    if (num_houses>1)&&(num_houses*5<=(vils+num_mil))
-        pop_cap=1;
-    else
-        pop_cap=0;
-    end
-    
-    %% Start variable-based build timing
-    %1. mill 2. lumber camp 3. mining 4. farm 5. blacksmith 6. barracks 7.
-    %archery range 8. stable
-    
+    %% Start chromosome-based build timing   
     %We examine when it is appropriate to build a farm. After we have built
     %the first farm, we will try to build another every time all farms are
     %occupied
@@ -445,13 +302,126 @@ for step=1:36
     end
     
     num_mil=num_skirms+num_archer+num_sc+num_MaA+num_spearmen;
+
+    
+    %% calculates the resources generated in a time period 
+    a_num_vil_wood=numel(find(vil_assignments(1:vils)==3));
+    a_num_vil_gold=numel(find(vil_assignments(1:vils)==4));
+    a_num_vil_stone=numel(find(vil_assignments(1:vils)==5));
+    a_num_vil_build=numel(find(vil_assignments(1:vils)==6));
+    
+    %food gatherers are more complicated; they may require farms. 
+    %If we do not have enough, we re-route vils to free food, if 
+    %possible. If we do not have free food left, then we try to put people
+    %on farms. Any who don't have farms will sit idle until they get some.
+    
+    a_num_vil_free_food=0;
+    a_num_vil_farm=0;
+    
+    num_proposed_vil_farm=numel(find(vil_assignments(1:vils)==2));
+    num_proposed_vil_free_food=numel(find(vil_assignments(1:vils)==1));    
+    
+    if (free_food_gen_total<1500)
+        if (num_proposed_vil_farm<=num_farms)
+            a_num_vil_farm=num_proposed_vil_farm;
+            a_num_vil_free_food=num_proposed_vil_free_food;
+        else
+            a_num_vil_farm=num_farms;
+            a_num_vil_free_food=num_proposed_vil_free_food+num_proposed_vil_farm-num_farms;
+        end
+    elseif (free_food_gen_total>=1500)
+        if (num_proposed_vil_farm+num_proposed_vil_free_food<=num_farms)
+            a_num_vil_farm=num_proposed_vil_farm+num_proposed_vil_free_food;
+            a_num_vil_free_food=0;
+            a_num_vil_idle=0;
+        else
+            a_num_vil_farm=num_farms;
+            a_num_vil_idle=num_proposed_vil_farm+num_proposed_vil_free_food-num_farms;
+            a_num_vil_free_food=0;
+        end       
+    else
+        disp 'broken'
+    end
+    
+    %Determine how much food will be generated this round
+    free_food_gen=free_food_gather*a_num_vil_free_food;
+    free_food_gen_total=free_food_gen_total+free_food_gen;
+    farm_food_gen=farm_gather*a_num_vil_farm;
+    farm_food_gen_total=farm_food_gen_total+farm_food_gen;
+%     farm_food_available=num_farms*175
+    food_stockpile=farm_food_gen+free_food_gen+food_stockpile;
+    
+    %Determine how much wood has been generated this round
+    if(lumber==1)
+        wood_gen=wood_gather*a_num_vil_wood;
+    else
+        wood_gen=wood_gather_tc*a_num_vil_wood;
+    end
+    wood_stockpile=wood_gen+wood_stockpile;
+    
+    %determine gold generation
+    if(mining==1)
+        gold_gen=gold_gather*a_num_vil_gold;
+    else
+        gold_gen=gold_gather_tc*a_num_vil_gold;
+    end
+    gold_stockpile=gold_gen+gold_stockpile;
+    
+    %determine stone generation
+    if(mining==1)
+        stone_gen=stone_gather*a_num_vil_stone;
+    else
+        stone_gen=stone_gather_tc*a_num_vil_stone;
+    end
+    stone_stockpile=stone_gen+stone_stockpile;
+    
+    %determine build time generation
+    build_time_gen=a_num_vil_build*25;
+    build_stockpile=build_time_gen+build_stockpile;
+    
+    
+        
+    %% Start build script
+    
+    %We allow the computer to build a house immediately. No time
+    %requirement; this is not a variable (would create too many infeasible
+    %designs)
+    if(num_houses==0)
+        if (wood_stockpile>=house_wood_cost)&&(build_stockpile>=house_build_time)
+            num_houses=1;
+            house_turns=[house_turns,step];
+            wood_stockpile=wood_stockpile-house_wood_cost;
+            build_stockpile=build_stockpile-house_build_time;
+        else
+            %nothing; no house is built
+        end
+    %After the first house is built, we examine whether we should build another
+    %house at every step
+    elseif(num_houses*5-vils<=3)
+        %there are less than three empty population slots; try to build a
+        %house
+        if (wood_stockpile>=house_wood_cost)&&(build_stockpile>=house_build_time)
+            num_houses=num_houses+1;
+            house_turns=[house_turns,step];
+            wood_stockpile=wood_stockpile-house_wood_cost;
+            build_stockpile=build_stockpile-house_build_time;
+        end
+    end
+    
+    if (num_houses>1)&&(num_houses*5<=(vils+num_mil))
+        pop_cap=1;
+    else
+        pop_cap=0;
+    end
+    
     
     
     
 end
 
 
-    %constraints
+    %% Constraints
+    %currently these are all done implicitly inside the model
 
     %free_food_generated<1500;
     %population<house*5
@@ -460,13 +430,8 @@ end
     %stone_stockpile>0;
     %gold_stockpile>0;
     
-    military_spend
-    vils
-    
-%fitness=military_spend+penalty
 
-
-
+end
 
 
 
