@@ -6,7 +6,7 @@ clc
 clear
 
 chromosome_size = 55; % If chromosome length changes must change mutation function with it
-generation_size = 10; % MUST BE AN EVEN NUMBER!!!!!!!!!
+generation_size = 20; % MUST BE AN EVEN NUMBER!!!!!!!!!
 M = 100; % Total Number of generations
 current_gen = 1; %Will need to keep track of the generaation we are on for mutation to work properly
 
@@ -25,6 +25,11 @@ for counter_1=1:size(generation_chromos,1)
     [obj_funcs(counter_1,1),obj_funcs(counter_1,2)] = AoEModel_2Obj(chromosome);
     obj_funcs(counter_1,3) = counter_1;
 end
+
+%plot initial design points
+figure(1),clf,
+plot(obj_funcs(:,2),obj_funcs(:,1),'r*')
+hold on
 
 %calculate fitnesses
 f1 = obj_funcs(:,1);
@@ -168,6 +173,20 @@ end
 
 max(fitness);
 
+final_f=zeros(generation_size,2);
+    
+%plot final design points
+for final_counter=1:size(generation_chromos,1)
+    [military_spend,vils]=AoEModel_2Obj(generation_chromos(final_counter,:));
+    final_f(final_counter,1)=military_spend;
+    final_f(final_counter,2)=vils;
+end
+
+
+plot(final_f(:,2),final_f(:,1),'k*')
+axis([0 max(final_f(:,2))+5 0 max(final_f(:,1))+100])
 %I just put this in so you can run the optimal chromosome and see how many
 %of each unit got trained, etc.
-[military_spend,vils]=AoEModel_2Obj(generation_chromos(end,:))
+[military_spend,vils]=AoEModel_2Obj(generation_chromos(end,:));
+
+sortrows(final_f,1)
