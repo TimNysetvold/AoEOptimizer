@@ -5,7 +5,7 @@
 clc
 clear
 
-chromosome_size = 49; % If chromosome length changes must change mutation function with it
+chromosome_size = 55; % If chromosome length changes must change mutation function with it
 generation_size = 10; % MUST BE AN EVEN NUMBER!!!!!!!!!
 M = 100; % Total Number of generations
 current_gen = 1; %Will need to keep track of the generaation we are on for mutation to work properly

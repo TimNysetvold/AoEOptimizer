@@ -34,6 +34,4 @@ tech_times=ceil(rand(num_techs,1)*36);
 %The chromosome is made up of all of our choices.
 chromosome=[vil_assignments;build_times;tech_times];
 
-x=AoEModel(chromosome)
-
 end

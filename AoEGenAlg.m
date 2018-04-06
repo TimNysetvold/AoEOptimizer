@@ -5,7 +5,7 @@
 clc
 clear
 
-chromosome_size = 49; % If chromosome length changes must change mutation function with it
+chromosome_size = 55; % If chromosome length changes must change mutation function with it
 generation_size = 10; % MUST BE AN EVEN NUMBER!!!!!!!!!
 M = 100; % Total Number of generations
 current_gen = 1; %Will need to keep track of the generaation we are on for mutation to work properly
@@ -30,7 +30,7 @@ end
 figure(1), clf,
 plot(current_gen-1,fitness(:,1),'k*')
 hold on
-axis([0 M 0 1600])
+% axis([0 M 0 2000])
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% LET THE HUNGER GAMES BEGIN!!!!
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -128,7 +128,8 @@ for master_counter=1:M
     plot(current_gen-1,fitness(:,1),'k*')
 end
 
-max(fitness)
+max_spend=max(fitness)
+axis([0 M 0 max_spend(1)+100])
 
 %I just put this in so you can run the optimal chromosome and see how many
 %of each unit got trained, etc.
