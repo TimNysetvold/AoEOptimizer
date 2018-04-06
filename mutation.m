@@ -32,8 +32,8 @@ end
 
 function y = dynamic_mut(x_min, x_max, r, alpha, child)
     if r <= child
-        y = x_min + (r-x_min)^(alpha)*(child-x_min)^(1-alpha);
+        y = round(x_min + (r-x_min)^(alpha)*(child-x_min)^(1-alpha));
     else
-        y = x_max - (x_max-r)^(alpha)*(x_max-child)^(1-alpha); 
+        y = round(x_max - (x_max-r)^(alpha)*(x_max-child)^(1-alpha)); 
     end
 end
