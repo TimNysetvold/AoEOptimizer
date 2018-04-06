@@ -7,7 +7,7 @@ max_Vils=39; %One vil is created every 25 seconds of game time.
 %However, we will research wheelbarrow (75 sec; -3 vils) and Feudal age
 %(130 sec, ~-5 vils), so we should probably actually have a total of 31 vils.
 num_buildings=8; %Currently, 8 buildings are implemented
-num_techs=2;    %Currently, 2 techs are implemented
+num_techs=8;    %Currently, 8 techs are implemented
 
 
 %This vector determines how vils are allocated. To make sure we have some
@@ -33,5 +33,7 @@ tech_times=ceil(rand(num_techs,1)*36);
 
 %The chromosome is made up of all of our choices.
 chromosome=[vil_assignments;build_times;tech_times];
+
+x=AoEModel(chromosome)
 
 end

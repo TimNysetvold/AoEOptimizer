@@ -7,13 +7,14 @@ function [military_spend] = AoEModel(chromosome)
 %activities to maximize military production.
 
 
+tick_time=25;
 
 max_Vils=39; %One vil is created every 25 seconds of game time.
 %in 15 minutes, this works out to 36 vils, plus three starting vils.
 %However, we will research wheelbarrow (75 sec; -3 vils) and Feudal age
 %(130 sec, ~-5 vils), so we should probably actually have a total of 31 vils.
 num_buildings=8; %Currently, 8 buildings are implemented
-num_techs=2;    %Currently, 2 techs are implemented
+num_techs=8;    %Currently, 8 techs are implemented
 
 vil_assignments=chromosome(1:max_Vils);
 build_times=chromosome(max_Vils+1:max_Vils+num_buildings);
@@ -67,6 +68,9 @@ num_houses=0;
 feudal=0;
 wheelbarrow=0;
 
+blacksmith_occupied=0;
+barracks_occupied=0;
+
 military_spend=0;
 num_spearmen=0;
 num_MaA=0;
@@ -102,6 +106,33 @@ feudal_food_cost=500;
 
 wheelbarrow_food_cost=175;
 wheelbarrow_wood_cost=50;
+
+scale_mail_tech=0;
+scale_mail_food_cost=100;
+scale_mail_time_cost=50; %actually 40; close enough
+
+scale_barding_tech=0;
+scale_barding_food_cost=150;
+scale_barding_time_cost=50; %actually 45; close enough
+
+fletching_tech=0;
+fletching_food_cost=100;
+fletching_gold_cost=50;
+fletching_time_cost=25; %actually 30; close enough
+
+pad_archer_tech=0;
+pad_archer_food_cost=100;
+pad_archer_time_cost=50; %actually 40; close enough
+
+forging_tech=0;
+forging_food_cost=150;
+forging_time_cost=50; %actually 50
+
+MaA_tech_food_cost=200;
+MaA_tech_gold_cost=65;
+MaA_tech_time_cost=50; %Actually 45; Close enough to 50 to make no difference
+MaA_tech_turn=[];
+MaA_tech=0;
 
 MaA_food_cost=60;
 MaA_gold_cost=20;
@@ -258,28 +289,38 @@ for step=1:36
     
     
     %% Start military spend script
-    if (barracks==1)
+   
+    if (barracks==1)&&(barracks_occupied==0)
+         if (food_stockpile>=MaA_tech_food_cost)&&(MaA_tech==0)&&(step>=tech_times(8))&&(blacksmith_occupied==0)
+            MaA_tech=1;
+            food_stockpile=food_stockpile-MaA_tech_food_cost;
+            gold_stockpile=gold_stockpile-MaA_tech_gold_cost;
+            military_spend=military_spend+MaA_tech_food_cost+MaA_tech_gold_cost;
+            barracks_occupied=MaA_tech_time_cost/tick_time;
+        end
         if (pop_cap~=1)
             if (gold_stockpile>=MaA_gold_cost)&&(food_stockpile>=MaA_food_cost)
                 num_MaA=num_MaA+1;
-                gold_stockpile==gold_stockpile-MaA_gold_cost;
-                food_stockpile==food_stockpile-MaA_food_cost;
+                gold_stockpile=gold_stockpile-MaA_gold_cost;
+                food_stockpile=food_stockpile-MaA_food_cost;
                 MaA_turn=[MaA_turn,step];
                 military_spend=military_spend+MaA_food_cost+MaA_gold_cost;
             elseif (wood_stockpile>=spearman_wood_cost)&&(food_stockpile>=spearman_food_cost)
                 num_spearmen=num_spearmen+1;
-                wood_stockpile==wood_stockpile-spearman_wood_cost;
-                food_stockpile==food_stockpile-spearman_food_cost;
+                wood_stockpile=wood_stockpile-spearman_wood_cost;
+                food_stockpile=food_stockpile-spearman_food_cost;
                 military_spend=military_spend+spearman_wood_cost+spearman_food_cost;
             end
         end
+    elseif (barracks==1)&&(barracks_occupied>0)
+        barracks_occupied=barracks_occupied-1;
     end
     
     if (stable==1)
         if (pop_cap~=1)
             if (food_stockpile>=sc_food_cost)
                 num_sc=num_sc+1;
-                food_stockpile==food_stockpile-sc_food_cost;
+                food_stockpile=food_stockpile-sc_food_cost;
                 military_spend=military_spend+sc_food_cost;
             end
         end
@@ -289,16 +330,54 @@ for step=1:36
         if (pop_cap~=1)
             if (gold_stockpile>=archer_gold_cost)&&(wood_stockpile>=archer_wood_cost)
                 num_archer=num_archer+1;
-                gold_stockpile==gold_stockpile-archer_gold_cost;
-                wood_stockpile==wood_stockpile-archer_wood_cost;
+                gold_stockpile=gold_stockpile-archer_gold_cost;
+                wood_stockpile=wood_stockpile-archer_wood_cost;
                 military_spend=military_spend+archer_wood_cost+archer_gold_cost;
             elseif (wood_stockpile>=skirm_wood_cost)&&(food_stockpile>=skirm_food_cost)
                 num_skirms=num_skirms+1;
-                wood_stockpile==wood_stockpile-skirm_wood_cost;
-                food_stockpile==food_stockpile-skirm_food_cost;
+                wood_stockpile=wood_stockpile-skirm_wood_cost;
+                food_stockpile=food_stockpile-skirm_food_cost;
                 military_spend=military_spend+skirm_wood_cost+skirm_food_cost;
             end
         end
+    end
+    
+    
+    if (blacksmith==1)&&(blacksmith_occupied==0)
+        if (food_stockpile>=pad_archer_food_cost)&&(pad_archer_tech)==0&&(step>=tech_times(3))&&(blacksmith_occupied==0)
+            pad_archer_tech=1;
+            food_stockpile=food_stockpile-pad_archer_food_cost;
+            military_spend=military_spend+pad_archer_food_cost;
+            blacksmith_occupied=pad_archer_time_cost/tick_time;
+        end
+        if (food_stockpile>=fletching_food_cost)&&(gold_stockpile>=fletching_gold_cost)&&(fletching_tech)==0&&(step>=tech_times(4))&&(blacksmith_occupied==0)
+            fletching_tech=1;
+            food_stockpile=food_stockpile-fletching_food_cost;
+            gold_stockpile=gold_stockpile-fletching_gold_cost;
+            military_spend=military_spend+fletching_food_cost+fletching_gold_cost;
+            blacksmith_occupied=fletching_time_cost/tick_time;
+        end
+        if (food_stockpile>=forging_food_cost)&&(forging_tech)==0&&(step>=tech_times(5))&&(blacksmith_occupied==0)
+            forging_tech=1;
+            food_stockpile=food_stockpile-forging_food_cost;
+            military_spend=military_spend+forging_food_cost;
+            blacksmith_occupied=forging_time_cost/tick_time;
+        end
+        if (food_stockpile>=scale_barding_food_cost)&&(scale_barding_tech)==0&&(step>=tech_times(6))&&(blacksmith_occupied==0)
+            scale_barding_tech=1;
+            food_stockpile=food_stockpile-scale_barding_food_cost;
+            military_spend=military_spend+scale_barding_food_cost;
+            blacksmith_occupied=scale_barding_time_cost/tick_time;
+        end
+        if (food_stockpile>=scale_mail_food_cost)&&(scale_mail_tech)==0&&(step>=tech_times(7))&&(blacksmith_occupied==0)
+            scale_mail_tech=1;
+            food_stockpile=food_stockpile-scale_mail_food_cost;
+            military_spend=military_spend+scale_mail_food_cost;
+            blacksmith_occupied=scale_mail_time_cost/tick_time;
+        end
+        
+    elseif (blacksmith==1)&&(blacksmith_occupied==1)
+        blacksmith_occupied=blacksmith_occupied-1;
     end
     
     num_mil=num_skirms+num_archer+num_sc+num_MaA+num_spearmen;
