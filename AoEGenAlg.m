@@ -7,7 +7,7 @@ clear
 
 chromosome_size = 49; % If chromosome length changes must change mutation function with it
 generation_size = 10; % MUST BE AN EVEN NUMBER!!!!!!!!!
-M = 20; % Total Number of generations
+M = 100; % Total Number of generations
 current_gen = 1; %Will need to keep track of the generaation we are on for mutation to work properly
 
 
@@ -82,7 +82,7 @@ for master_counter=1:M
 
 
         % Crossover
-        cross_prob = .6; % We can change
+        cross_prob = .5; % We can change
         cross_rand = rand(1);
         if cross_rand < cross_prob
             cross_point = ceil(chromosome_size*rand(1));
@@ -94,7 +94,7 @@ for master_counter=1:M
         end
 
         % Mutation
-        mut_prob = .1; % We can change
+        mut_prob = .05; % We can change
         child_1 = mutation(child_1, chromosome_size, M, current_gen, mut_prob);
         child_2 = mutation(child_2, chromosome_size, M, current_gen, mut_prob);
 
