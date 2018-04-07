@@ -5,7 +5,8 @@
 clc
 clear
 
-chromosome_size = 55; % If chromosome length changes must change mutation function with it
+size_chromo = ChromosomeGenerator();
+chromosome_size = length(size_chromo); % If chromosome length changes must change mutation function with it
 generation_size = 20; % MUST BE AN EVEN NUMBER!!!!!!!!!
 M = 100; % Total Number of generations
 current_gen = 1; %Will need to keep track of the generaation we are on for mutation to work properly
@@ -40,17 +41,16 @@ fitness = zeros(length(f1),2);
 
 for i=1:length(f1)
     for k=1:length(f2)
-        find_fitness(i,k) = min(f1(i)-f1(k),f2(i)-f2(k));
+        find_fitness(i,k) = max(f1(i)-f1(k),f2(i)-f2(k));
     end
 
-    if (max(find_fitness(i,find_fitness(i,:) ~=0)) <0 && length(find(find_fitness(i,:)==0,2,'first'))>1)
+    if (min(find_fitness(i,find_fitness(i,:) ~=0)) >0 && length(find(find_fitness(i,:)==0,2,'first'))>1)
         fitness(i,1) = 0;
     else
-        fitness(i,1) = max(find_fitness(i,find_fitness(i,:) ~=0));
+        fitness(i,1) = min(find_fitness(i,find_fitness(i,:) ~=0));
     end
     fitness(i,2) = i;
 end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% LET THE HUNGER GAMES BEGIN!!!!
@@ -137,13 +137,13 @@ for master_counter=1:M
 
     for i=1:length(next_gen_f1)
         for k=1:length(next_gen_f2)
-            next_gen_find_fitness(i,k) = min(next_gen_f1(i)-next_gen_f1(k),next_gen_f2(i)-next_gen_f2(k));
+            next_gen_find_fitness(i,k) = max(next_gen_f1(i)-next_gen_f1(k),next_gen_f2(i)-next_gen_f2(k));
         end
         if ~isempty(find(next_gen_find_fitness(i,:)~=0,2,'first'))
-            if (max(next_gen_find_fitness(i,next_gen_find_fitness(i,:) ~=0)) <0 && length(find(next_gen_find_fitness(i,:)==0,2,'first'))>1)
+            if (min(next_gen_find_fitness(i,next_gen_find_fitness(i,:) ~=0)) >0 && length(find(next_gen_find_fitness(i,:)==0,2,'first'))>1)
                 next_gen_fitness(i,1) = 0;
             else
-                next_gen_fitness(i,1) = max(next_gen_find_fitness(i,next_gen_find_fitness(i,:) ~=0));
+                next_gen_fitness(i,1) = min(next_gen_find_fitness(i,next_gen_find_fitness(i,:) ~=0));
             end
         else
             next_gen_fitness(i,1)=0;
@@ -185,6 +185,9 @@ end
 
 plot(final_f(:,2),final_f(:,1),'k*')
 axis([0 max(final_f(:,2))+5 0 max(final_f(:,1))+100])
+xlabel('Number of Villagers')
+ylabel('Military Spending')
+
 %I just put this in so you can run the optimal chromosome and see how many
 %of each unit got trained, etc.
 [military_spend,vils]=AoEModel_2Obj(generation_chromos(end,:));

@@ -6,10 +6,10 @@ function [military_spend,vils] = AoEModel_2Obj(chromosome)
 %optimization, we determine which villagers should be allocated to which
 %activities to maximize military production.
 
-
+num_steps = 36;
 tick_time=25;
 
-max_Vils=39; %One vil is created every 25 seconds of game time.
+max_Vils=num_steps+3; %One vil is created every 25 seconds of game time.
 %in 15 minutes, this works out to 36 vils, plus three starting vils.
 %However, we will research wheelbarrow (75 sec; -3 vils) and Feudal age
 %(130 sec, ~-5 vils), so we should probably actually have a total of 31 vils.
@@ -260,7 +260,7 @@ for step=1:36
             feudal_time=step;
             
             %Since the TC isn't producing villagers during this time, we
-            %don't step. Our already-created villagers, though, still
+            %don't build an additional villager. Our already-created villagers, though, still
             %produce resources. The research takes 5 rounds, we've already
             %considered one; we'll now consider 4 more
             tc_occupied=5;

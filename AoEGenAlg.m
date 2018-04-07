@@ -5,8 +5,9 @@
 clc
 clear
 
-chromosome_size = 55; % If chromosome length changes must change mutation function with it
-generation_size = 10; % MUST BE AN EVEN NUMBER!!!!!!!!!
+size_chromo = ChromosomeGenerator();
+chromosome_size = length(size_chromo); % If chromosome length changes must change mutation function with it
+generation_size = 20; % MUST BE AN EVEN NUMBER!!!!!!!!!
 M = 100; % Total Number of generations
 current_gen = 1; %Will need to keep track of the generaation we are on for mutation to work properly
 
@@ -30,14 +31,14 @@ end
 figure(1), clf,
 plot(current_gen-1,fitness(:,1),'k*')
 hold on
-% axis([0 M 0 2000])
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% LET THE HUNGER GAMES BEGIN!!!!
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 %perform tournament selection for mother and father chromosomes
-tournament_size = 5;
+tournament_size = 2;
 for master_counter=1:M
     
     for counter_3=1:2:generation_size-1 %GEN_SIZE MUST BE EVEN!!!!
@@ -82,7 +83,7 @@ for master_counter=1:M
 
 
         % Crossover
-        cross_prob = .5; % We can change
+        cross_prob = .7; % We can change
         cross_rand = rand(1);
         if cross_rand < cross_prob
             cross_point = ceil(chromosome_size*rand(1));
@@ -94,7 +95,7 @@ for master_counter=1:M
         end
 
         % Mutation
-        mut_prob = .05; % We can change
+        mut_prob = .1; % We can change
         child_1 = mutation(child_1, chromosome_size, M, current_gen, mut_prob);
         child_2 = mutation(child_2, chromosome_size, M, current_gen, mut_prob);
 
@@ -130,6 +131,8 @@ end
 
 max_spend=max(fitness)
 axis([0 M 0 max_spend(1)+100])
+xlabel('Generation')
+ylabel('Military Spending')
 
 %I just put this in so you can run the optimal chromosome and see how many
 %of each unit got trained, etc.
