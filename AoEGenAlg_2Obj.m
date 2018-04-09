@@ -151,23 +151,37 @@ for master_counter=1:M
         next_gen_fitness(i,2) = generation_size+i;
     end
     
+    %check for duplicates
+    new_generation_chromos = [generation_chromos;next_gen_chromos];
+        % check if design is a duplicate of another design
+        for i=1:length(new_generation_chromos)
+            for j=i+1:length(new_genereation_chromos)
+                if new_generation_chromos(i,:)==new_generation_chromos(j,:)
+                    new_generation_chromos(j,:)=[];
+                end
+            end
+        end
+        
     %%%elitism
     elitism_fitness = [fitness;next_gen_fitness];
     elitism_fitness = sortrows(elitism_fitness,1);
 
     for counter_4=generation_size+1:2*generation_size
         if elitism_fitness(counter_4,2)<generation_size+1
-            generation_chromos(counter_4-generation_size,:)=...
+            new_generation_chromos(counter_4-generation_size,:)=...
                 generation_chromos(elitism_fitness(counter_4,2),:);
             fitness(counter_4-generation_size,1)=fitness(elitism_fitness(counter_4,2),1);
         else
-            generation_chromos(counter_4-generation_size,:)=...
+            new_generation_chromos(counter_4-generation_size,:)=...
                 next_gen_chromos(elitism_fitness(counter_4,2)-generation_size,:);
             fitness(counter_4-generation_size,1)=...
                 next_gen_fitness(elitism_fitness(counter_4,2)-generation_size,1);
         end
     end    
     
+    % now check new generation vector for duplicates
+    
+    generation_chromos = new_generation_chromos;
     current_gen = current_gen+1;
 end
 
@@ -187,6 +201,7 @@ plot(final_f(:,2),final_f(:,1),'k*')
 axis([0 max(final_f(:,2))+5 0 max(final_f(:,1))+100])
 xlabel('Number of Villagers')
 ylabel('Military Spending')
+legend('Starting Designs','Ending Designs')
 
 %I just put this in so you can run the optimal chromosome and see how many
 %of each unit got trained, etc.
