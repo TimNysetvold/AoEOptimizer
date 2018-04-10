@@ -81,6 +81,7 @@ num_MaA=0;
 num_sc=0;
 num_archer=0;
 num_skirms=0;
+num_mil=0;
 
 
 %Costs; found at http://www.salamyhkaiset.org/aoe2/step_2_-_data_tables_and_times
@@ -366,12 +367,10 @@ for step=1:num_steps-1
             house_turns=[house_turns,step];
             aa_wood_stockpile=aa_wood_stockpile-house_wood_cost;
             house_time_left=house_build_time;
-        else
-            %nothing; no house is built
         end
     %After the first house is built, we examine whether we should build another
     %house at every step
-    elseif(num_houses*5-zz_vils<=3)&&house_flag==0
+    elseif(num_houses*5-(zz_vils+num_mil)<=3)&&house_flag==0
         %there are less than three empty population slots; try to build a
         %house
         if (aa_wood_stockpile>=house_wood_cost)&&(build_vils_available>0)
@@ -384,7 +383,7 @@ for step=1:num_steps-1
         end
     end
     
-    if (num_houses>1)&&(num_houses*5<=(zz_vils+num_mil))
+    if (num_houses*5<=(zz_vils+num_mil))
         pop_cap=1;
     else
         pop_cap=0;
