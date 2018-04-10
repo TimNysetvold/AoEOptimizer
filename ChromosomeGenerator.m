@@ -5,7 +5,7 @@ num_steps = 20*60;
 max_Vils=num_steps/25+3; 
 num_buildings=8; %Currently, 8 buildings are implemented
 num_techs=8;    %Currently, 8 techs are implemented
-
+num_vil_divisions=8;
 
 %This vector determines how vils are allocated. To make sure we have some
 %feasible designs, we put two on food and one on build (for a house)
@@ -13,11 +13,11 @@ num_techs=8;    %Currently, 8 techs are implemented
 
 %1. Free food 2. farms 3. wood 4. gold 5. stone 6. build
 vil_assignments{1}=ceil(rand(max_Vils,1)*6);
-vil_assignments{1}(1:2)=[1,1];
-vil_assignments{1}(3)=[6];
-vil_assignments{1}(4:5)=[1,1];
+% vil_assignments{1}(1:2)=[1,1];
+% vil_assignments{1}(3)=[6];
+% vil_assignments{1}(4:5)=[1,1];
 
-for i=2:8
+for i=2:num_vil_divisions
     vil_assignments{i}=ceil(rand(max_Vils,1)*6);
 end
 
@@ -38,6 +38,6 @@ end
 %The chromosome is made up of all of our choices.
 chromosome=[vil_assignments_longform;build_times;tech_times];
 
-%%[spend,vils]=AoEModel(chromosome)
+[spend,vils]=AoEModel(chromosome)
 
 end
