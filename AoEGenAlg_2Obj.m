@@ -154,15 +154,22 @@ for master_counter=1:M
     end
     
     %check for duplicates
-    new_generation_chromos = [generation_chromos;next_gen_chromos];
+    
+    %%THIS LINE IS BREAKING
+            new_generation_chromos = [generation_chromos(1:20,:);next_gen_chromos];
+    %%END BROKEN LINE
+            
+            deletionindexes=[];
         % check if design is a duplicate of another design
-        for i=1:length(new_generation_chromos)
-            for j=i+1:length(new_genereation_chromos)
+        for i=1:size(new_generation_chromos,1)
+            for j=i+1:size(new_generation_chromos,1)
                 if new_generation_chromos(i,:)==new_generation_chromos(j,:)
-                    new_generation_chromos(j,:)=[];
+                    deletionindexes=[deletionindexes,j];
                 end
             end
         end
+        
+        new_generation_chromos(deletionindexes,:)=[];
         
     %%%elitism
     elitism_fitness = [fitness;next_gen_fitness];
@@ -184,6 +191,7 @@ for master_counter=1:M
     % now check new generation vector for duplicates
     
     generation_chromos = new_generation_chromos;
+    new_generation_chromos=[];
     current_gen = current_gen+1;
 end
 
