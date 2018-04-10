@@ -10,8 +10,8 @@ num_buildings=8;
 num_techs=8;
 chromosome_size = length(size_chromo); % If chromosome length changes must change mutation function with it
 generation_size = 20; % MUST BE AN EVEN NUMBER!!!!!!!!!
-M = 100; % Total Number of generations
-current_gen = 1; %Will need to keep track of the generaation we are on for mutation to work properly
+M = 50; % Total Number of generations
+current_gen = 1; %Will need to keep track of the generation we are on for mutation to work properly
 
 
 generation_chromos = zeros(generation_size,chromosome_size);
@@ -22,13 +22,13 @@ next_gen_obj_funcs = zeros(generation_size,3);
 %populate first generation chromosomes and fitness values
 %there are no external constraints, so the fitness values are simply the
 %values of the objective functions, 'military_spend' and 'vils'
-for counter_1=1:size(generation_chromos,1)
+for counter=1:size(generation_chromos,1)
     chromosome = ChromosomeGenerator();
-    generation_chromos(counter_1,:) = chromosome;
-    [obj_funcs(counter_1,1),obj_funcs(counter_1,2)] = AoEModel(chromosome);
-    obj_funcs(counter_1,3) = counter_1;
+    generation_chromos(counter,:) = chromosome;
+    [obj_funcs(counter,1),obj_funcs(counter,2)] = AoEModel(chromosome);
+    obj_funcs(counter,3) = counter;
 end
-
+starting_chromos = generation_chromos;
 %plot initial design points
 figure(1),clf,
 plot(obj_funcs(:,2),obj_funcs(:,1),'r*')
@@ -75,19 +75,25 @@ for master_counter=1:M
             
             for counter_1=1:tournament_size
                 tournament_chromos(counter_1,:) = generation_chromos(rand_chromo_nums(counter_1),:);
-                tournament_fitnesses(counter_1) = fitness(rand_chromo_nums(counter_1));
+                tournament_fitnesses(counter_1) = fitness(rand_chromo_nums(counter_1),1);
             end
 
             %determine champion chromosome
             highest_tournament_fitness = max(tournament_fitnesses);
             highest_fitness_chromos = [];
 
+            
             for counter_1=1:tournament_size
                 if tournament_fitnesses(counter_1)==highest_tournament_fitness
                     highest_fitness_chromos=[highest_fitness_chromos,rand_chromo_nums(counter_1)];
                 end
             end
 
+            % select mother/father chromosomes. If only one chromosome in 
+            % the tournament has the max fitness, that chromosome becomes
+            % one of the parents. If more than one tournament chromosome
+            % has the highest fitness, one of those chromosomes is selected
+            % randomly to be the parent.
             if length(highest_fitness_chromos)==1
                 if counter_2==1
                     mother_chromo = generation_chromos(highest_fitness_chromos(1),:);
@@ -105,7 +111,7 @@ for master_counter=1:M
 
 
         % Crossover
-        cross_prob = .2; % We can change
+        cross_prob = .6; % We can change
         cross_rand = rand(1);
         if cross_rand < cross_prob
             cross_point = ceil(chromosome_size*rand(1));
@@ -156,7 +162,8 @@ for master_counter=1:M
     %check for duplicates
     
     %%THIS LINE IS BREAKING
-            new_generation_chromos = [generation_chromos(1:20,:);next_gen_chromos];
+            new_generation_chromos = [generation_chromos;next_gen_chromos];
+            new_generation_fitness = [fitness;next_gen_fitness];
     %%END BROKEN LINE
             
             deletionindexes=[];
@@ -170,40 +177,85 @@ for master_counter=1:M
         end
         
         new_generation_chromos(deletionindexes,:)=[];
+        new_generation_fitness(deletionindexes,:)=[];
+        
+        %renumber remaining chromosomes
+        for i=1:size(new_generation_chromos)
+            new_generation_fitness(i,2) = i;
+        end
+        
+%         % delete fitnesses of duplicate chromosomes and update
+%         % corresponding chromosome number in fitness matrices
+%         if size(deletionindexes)>0
+%             for i=1:size(deletionindexes)
+%                 if deletionindexes(i) <= generation_size
+%                     for j=1:size(generation_chromos,1)
+%                         if deletionindexes(i) == fitness(j,2)
+%                             fitness(j,:) = [];
+%                             for k=j:size(fitness,1)
+%                                 fitness(k,2)=fitness(k,2)-1;
+%                             end
+%                             break;
+%                         end
+%                     end
+%                 else
+%                     for j=1:size(next_gen_chromos,1)
+%                         if deletionindexes(i) == next_gen_fitness(j,2)
+%                             fitness(j,:) = [];
+%                             for k=j:size(fitness,1)
+%                                 fitness(k,2)=fitness(k,2)-1;
+%                             end
+%                             break;
+%                         end
+%                     end
+%                 end
+%             end
+%         end
         
     %%%elitism
-    elitism_fitness = [fitness;next_gen_fitness];
-    elitism_fitness = sortrows(elitism_fitness,1);
+%     elitism_fitness = [fitness;next_gen_fitness];
+    elitism_fitness = sortrows(new_generation_fitness,1);
 
-    for counter_4=generation_size+1:2*generation_size
-        if elitism_fitness(counter_4,2)<generation_size+1
-            new_generation_chromos(counter_4-generation_size,:)=...
-                generation_chromos(elitism_fitness(counter_4,2),:);
-            fitness(counter_4-generation_size,1)=fitness(elitism_fitness(counter_4,2),1);
-        else
-            new_generation_chromos(counter_4-generation_size,:)=...
-                next_gen_chromos(elitism_fitness(counter_4,2)-generation_size,:);
-            fitness(counter_4-generation_size,1)=...
-                next_gen_fitness(elitism_fitness(counter_4,2)-generation_size,1);
-        end
-    end    
-    
-    % now check new generation vector for duplicates
-    
-    generation_chromos = new_generation_chromos;
+    if size(elitism_fitness)<2*generation_size
+        disp('Thought so');
+    end
+
+    refill_generation_chromos_counter = 1;
+    if size(elitism_fitness,1)>=generation_size      
+        for counter_4=size(elitism_fitness,1)-generation_size+1:size(elitism_fitness,1)
+%             if elitism_fitness(counter_4,2)<generation_size+1
+%                 generation_chromos(counter_4-generation_size,:)=...
+%                     generation_chromos(elitism_fitness(counter_4,2),:);
+%                 fitness(counter_4-generation_size,1)=fitness(elitism_fitness(counter_4,2),1);
+%             else
+%                 generation_chromos(counter_4-generation_size,:)=...
+%                     next_gen_chromos(elitism_fitness(counter_4,2)-generation_size,:);
+%                 fitness(counter_4-generation_size,1)=...
+%                     next_gen_fitness(elitism_fitness(counter_4,2)-generation_size,1);
+%             end
+            generation_chromos(refill_generation_chromos_counter,:)=...
+                new_generation_chromos(elitism_fitness(counter_4,2),:);
+            fitness(refill_generation_chromos_counter,1) = elitism_fitness(counter_4,1);
+            refill_generation_chromos_counter = refill_generation_chromos_counter+1;
+        end  
+    else
+        disp('Too many duplicates deleted');
+    end
+%     generation_chromos = new_generation_chromos;
     new_generation_chromos=[];
     current_gen = current_gen+1;
 end
 
 max(fitness);
 
-final_f=zeros(generation_size,2);
+final_f=zeros(generation_size,3);
     
 %plot final design points
 for final_counter=1:size(generation_chromos,1)
     [military_spend,vils]=AoEModel(generation_chromos(final_counter,:));
     final_f(final_counter,1)=military_spend;
     final_f(final_counter,2)=vils;
+    final_f(final_counter,3)=final_counter;
 end
 
 hold on
