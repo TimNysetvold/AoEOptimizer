@@ -4,7 +4,7 @@ for i = 1:chromosome_size
     
     mut_rand = rand(1);
     if mut_rand < mut_prob
-        alpha = (1-(j-1)/M)^mut_prob;
+        alpha = (1-(j-1)/M)^0;
        
         if i <= chromosome_size-num_buildings-num_techs
             x_min = 1;
