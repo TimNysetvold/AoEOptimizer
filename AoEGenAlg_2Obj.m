@@ -6,6 +6,8 @@ clc
 clear
 
 size_chromo = ChromosomeGenerator();
+num_buildings=8;
+num_techs=8;
 chromosome_size = length(size_chromo); % If chromosome length changes must change mutation function with it
 generation_size = 20; % MUST BE AN EVEN NUMBER!!!!!!!!!
 M = 100; % Total Number of generations
@@ -23,7 +25,7 @@ next_gen_obj_funcs = zeros(generation_size,3);
 for counter_1=1:size(generation_chromos,1)
     chromosome = ChromosomeGenerator();
     generation_chromos(counter_1,:) = chromosome;
-    [obj_funcs(counter_1,1),obj_funcs(counter_1,2)] = AoEModel_2Obj(chromosome);
+    [obj_funcs(counter_1,1),obj_funcs(counter_1,2)] = AoEModel(chromosome);
     obj_funcs(counter_1,3) = counter_1;
 end
 
@@ -58,7 +60,7 @@ end
 
 
 %perform tournament selection for mother and father chromosomes
-tournament_size = 0.5*generation_size;
+tournament_size = floor(0.2*generation_size);
 for master_counter=1:M
     
     for counter_3=1:2:generation_size-1 %GEN_SIZE MUST BE EVEN!!!!
@@ -103,7 +105,7 @@ for master_counter=1:M
 
 
         % Crossover
-        cross_prob = .5; % We can change
+        cross_prob = .2; % We can change
         cross_rand = rand(1);
         if cross_rand < cross_prob
             cross_point = ceil(chromosome_size*rand(1));
@@ -115,16 +117,16 @@ for master_counter=1:M
         end
 
         % Mutation
-        mut_prob = .05; % We can change
-        child_1 = mutation(child_1, chromosome_size, M, current_gen, mut_prob);
-        child_2 = mutation(child_2, chromosome_size, M, current_gen, mut_prob);
+        mut_prob = .5; % We can change
+        child_1 = mutation(child_1, chromosome_size, M, current_gen, mut_prob,num_buildings,num_techs);
+        child_2 = mutation(child_2, chromosome_size, M, current_gen, mut_prob,num_buildings,num_techs);
 
         %create next generation chromo matrix
         next_gen_chromos(counter_3,:)=child_1;
-        [next_gen_obj_funcs(counter_3,1),next_gen_obj_funcs(counter_3,2)] = AoEModel_2Obj(child_1);
+        [next_gen_obj_funcs(counter_3,1),next_gen_obj_funcs(counter_3,2)] = AoEModel(child_1);
         next_gen_obj_funcs(counter_3,3)=generation_size+counter_3;
         next_gen_chromos(counter_3+1,:)=child_2;
-        [next_gen_obj_funcs(counter_3+1,1),next_gen_obj_funcs(counter_3+1,2)] = AoEModel_2Obj(child_2);
+        [next_gen_obj_funcs(counter_3+1,1),next_gen_obj_funcs(counter_3+1,2)] = AoEModel(child_2);
         next_gen_obj_funcs(counter_3+1,3)=1+generation_size+counter_3;
     end
 
@@ -177,12 +179,12 @@ final_f=zeros(generation_size,2);
     
 %plot final design points
 for final_counter=1:size(generation_chromos,1)
-    [military_spend,vils]=AoEModel_2Obj(generation_chromos(final_counter,:));
+    [military_spend,vils]=AoEModel(generation_chromos(final_counter,:));
     final_f(final_counter,1)=military_spend;
     final_f(final_counter,2)=vils;
 end
 
-
+hold on
 plot(final_f(:,2),final_f(:,1),'k*')
 axis([0 max(final_f(:,2))+5 0 max(final_f(:,1))+100])
 xlabel('Number of Villagers')
@@ -190,6 +192,6 @@ ylabel('Military Spending')
 
 %I just put this in so you can run the optimal chromosome and see how many
 %of each unit got trained, etc.
-[military_spend,vils]=AoEModel_2Obj(generation_chromos(end,:));
+[military_spend,vils]=AoEModel(generation_chromos(end,:));
 
 sortrows(final_f,1)

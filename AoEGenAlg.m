@@ -6,6 +6,8 @@ clc
 clear
 
 size_chromo = ChromosomeGenerator();
+num_buildings=8;
+num_techs=8;
 chromosome_size = length(size_chromo); % If chromosome length changes must change mutation function with it
 generation_size = 20; % MUST BE AN EVEN NUMBER!!!!!!!!!
 M = 100; % Total Number of generations
@@ -96,8 +98,8 @@ for master_counter=1:M
 
         % Mutation
         mut_prob = .1; % We can change
-        child_1 = mutation(child_1, chromosome_size, M, current_gen, mut_prob);
-        child_2 = mutation(child_2, chromosome_size, M, current_gen, mut_prob);
+        child_1 = mutation(child_1, chromosome_size, M, current_gen, mut_prob,num_buildings,num_techs);
+        child_2 = mutation(child_2, chromosome_size, M, current_gen, mut_prob,num_buildings,num_techs);
 
         %create next generation chromo matrix and fitness matrix
         next_gen_chromos(counter_3,:)=child_1;
