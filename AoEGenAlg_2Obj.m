@@ -10,39 +10,46 @@ num_buildings=8;
 num_techs=8;
 num_vil_divisions=8;
 
-chromosome_size = length(size_chromo); % If chromosome length changes must change mutation function with it
-generation_size = 20; % MUST BE AN EVEN NUMBER!!!!!!!!!
-M = 5000; % Total Number of generations
-current_gen = 1; %Will need to keep track of the generation we are on for mutation to work properly
-
+chromosome_size = length(size_chromo); 
+generation_size = 20; % must be an even number
+M = 500; % Total Number of generations
+current_gen = 1;
 
 parent_chromos = zeros(generation_size,chromosome_size);
-%next_gen_chromos = zeros(generation_size,chromosome_size);
 children_chromos = [];
 obj_funcs = zeros(generation_size,3);
-next_gen_obj_funcs = zeros(generation_size,3);
+children_obj_funcs = zeros(generation_size,3);
 
-%populate first generation chromosomes and fitness values
-%there are no external constraints, so the fitness values are simply the
-%values of the objective functions, 'military_spend' and 'vils'
-for counter=1:size(parent_chromos,1)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% populate first generation chromosomes and fitness values
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% first find values of 2 objective functions of parent chromosomes
+% 'obj_funcs' is a matrix with 'generation_size' rows and 3 columns-
+% Column 1- Military Spending
+% Column 2- Number of Villagers
+% Column 3- Index of Chromosome
+for i=1:size(parent_chromos,1)
     chromosome = ChromosomeGenerator();
-    parent_chromos(counter,:) = chromosome;
-    [obj_funcs(counter,1),obj_funcs(counter,2)] = AoEModel(chromosome);
-    obj_funcs(counter,3) = counter;
+    parent_chromos(i,:) = chromosome;
+    [obj_funcs(i,1),obj_funcs(i,2)] = AoEModel(chromosome);
+    obj_funcs(i,3) = i;
 end
-starting_chromos = parent_chromos;
-%plot initial design points
+
+% save starting chromosomes for later comparison
+starting_chromos = parent_chromos; 
+
+% plot initial design points, Number of Villagers vs. Military Spending
 figure(1),clf,
 plot(obj_funcs(:,2),obj_funcs(:,1),'r*')
 hold on
 
-%calculate fitnesses
-spend_fitness = obj_funcs(:,1);
-vils_fitness = obj_funcs(:,2);
+% prepare vectors to pass into 'findFitness' function
+spend = obj_funcs(:,1);
+vils = obj_funcs(:,2);
 
-
-parent_fitness=findFitness(spend_fitness,vils_fitness);
+% find fitness of parent generation
+parent_fitness=findFitness(spend,vils);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% LET THE HUNGER GAMES BEGIN!!!!
@@ -112,9 +119,9 @@ for master_counter=1:M
         end
 
         % Mutation
-        mut_prob = .3; % We can change
-        child_1 = blockMutation(child_1, chromosome_size, M, current_gen, mut_prob,num_buildings,num_techs,num_vil_divisions);
-        child_2 = blockMutation(child_2, chromosome_size, M, current_gen, mut_prob,num_buildings,num_techs,num_vil_divisions);
+        mut_prob = .2; % We can change
+        child_1 = blockMutation2(child_1, chromosome_size, M, current_gen, mut_prob,num_buildings,num_techs,num_vil_divisions,current_gen);
+        child_2 = blockMutation2(child_2, chromosome_size, M, current_gen, mut_prob,num_buildings,num_techs,num_vil_divisions,current_gen);
 
         %create next generation chromo matrix
         children_chromos(end+1,:)=child_1;
@@ -122,7 +129,7 @@ for master_counter=1:M
        
 %% eliminate true duplicates. Consider changing this to delete 
 % all that have the same objective value.
-        children_chromos=unique(children_chromos,'rows');
+%         children_chromos=unique(children_chromos,'rows');
     end
         children_chromos=unique(children_chromos,'rows');
     for i=1:generation_size
@@ -135,17 +142,17 @@ for master_counter=1:M
     
     
     for i=1:generation_size
-        [next_gen_obj_funcs(i,1),next_gen_obj_funcs(i,2)] = AoEModel(children_chromos(i,:));
+        [children_obj_funcs(i,1),children_obj_funcs(i,2)] = AoEModel(children_chromos(i,:));
     end
     
     %create next generation fitnesses
-    next_gen_f1 = next_gen_obj_funcs(:,1);
-    next_gen_f2 = next_gen_obj_funcs(:,2);
+    children_spend = children_obj_funcs(:,1);
+    children_vils = children_obj_funcs(:,2);
     
-    children_fitness=findFitness(next_gen_f1,next_gen_f2);
+    children_fitness=findFitness(children_spend,children_vils);
     
     candidates_chromos = [parent_chromos;children_chromos];
-    candidates_fitness = [parent_fitness';children_fitness'];
+    candidates_fitness = [parent_fitness;children_fitness];
     
     indexes=[];
     for i=1:size(candidates_chromos,1)
@@ -165,6 +172,7 @@ for master_counter=1:M
     end
 
     elitism_fitness = sortrows(candidates_fitness,1);
+    
     %% We need to sort chromosomes in the same way we've sorted rows at some
     %point
     
@@ -174,8 +182,9 @@ for master_counter=1:M
         %Pulls off the fitness and index of the best available candidate,
         %adds them to the parent chromosome, and then deletes them from the
         %elitism matrix.
-        parent_fitness(i)=elitism_fitness(i,1);
-        index=elitism_fitness(i,2);
+        parent_fitness(i,1)=elitism_fitness(end-generation_size+i,1);
+        parent_fitness(i,2)=i;
+        index=elitism_fitness(end-generation_size+i,2);
         parent_chromos(i,:)=candidates_chromos(index,:);
     end
     
@@ -211,7 +220,7 @@ end
 
 %% Ending materials
 
-final_f=zeros(generation_size,3);
+final_f=zeros(generation_size,5);
     
 %plot final design points
 for final_counter=1:size(parent_chromos,1)
@@ -220,9 +229,9 @@ for final_counter=1:size(parent_chromos,1)
     final_f(final_counter,2)=vils;
     final_f(final_counter,3)=final_counter;
 end
-    final_f(:,4)=findFitness(final_f(:,1),final_f(:,1))
+     final_f(:,5:6)=findFitness(final_f(:,1),final_f(:,2))
 
-figure(2)
+% figure(2)
 plot(final_f(:,2),final_f(:,1),'k*')
 axis([0 max(final_f(:,2))+5 0 max(final_f(:,1))+100])
 xlabel('Number of Villagers')

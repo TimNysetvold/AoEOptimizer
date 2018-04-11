@@ -38,6 +38,6 @@ end
 %The chromosome is made up of all of our choices.
 chromosome=[vil_assignments_longform;build_times;tech_times];
 
-[spend,vils]=AoEModel(chromosome)
+% [spend,vils]=AoEModel(chromosome)
 
 end
