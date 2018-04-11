@@ -1,4 +1,5 @@
 function child_mut = mutation(child, chromosome_size, M, j, mut_prob,num_buildings,num_techs)
+total_steps=15*60;
 
 for i = 1:chromosome_size
     
@@ -13,14 +14,9 @@ for i = 1:chromosome_size
             y = dynamic_mut(x_min, x_max, r, alpha, child(i));
         elseif i >= chromosome_size-num_buildings-num_techs
             x_min = 1;
-            x_max = 36;
+            x_max = total_steps;
             r = ceil(x_max*rand(1));
             y = dynamic_mut(x_min, x_max, r, alpha, child(i));
-%         elseif i >= 48
-%             x_min = 1;
-%             x_max = 2;
-%             r = ceil(x_max*rand(1));
-%             y = dynamic_mut(x_min, x_max, r, alpha, child(i));
         end
         child(i) = y;
     else

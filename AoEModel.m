@@ -6,7 +6,7 @@ function [zz_military_spend,zz_vils] = AoEModel(chromosome)
 %optimization, we determine which villagers should be allocated to which
 %activities to maximize military production.
 
-num_steps = 20*60;
+num_steps = 15*60;
 max_Vils=num_steps/25+3; %One vil is created every 25 seconds of game time.
 %in 20 minutes, this works out to 48 vils, plus three starting vils.
 %However, we will research wheelbarrow (75 sec; -3 vils) and Feudal age
@@ -30,7 +30,7 @@ tech_times=chromosome(end-num_techs+1:end);
 %% start static model
 
 
-num_steps = 20*60;
+num_steps = 15*60;
 tick_time = 1;
 pop_cap=0;
 zz_vils=3;
@@ -39,9 +39,9 @@ tc_occupied=0;
 vil_flag=0;
 
 %Resource stockpiles
-aa_food_stockpile=300;
-aa_wood_stockpile=200;
-aa_gold_stockpile=200;
+aa_food_stockpile=250;
+aa_wood_stockpile=250;
+aa_gold_stockpile=100;
 aa_stone_stockpile=200;
 build_vils_occupied=0;
 build_vils_available=0;
@@ -612,7 +612,7 @@ for step=1:num_steps-1
     %food gatherers are more complicated; they may require farms. 
     %If we do not have enough, we re-route vils to free food, if 
     %possible. If we do not have free food left, then we try to put people
-    %on farms. Any who don't have farms will sit idle until they get some.
+    %on farms. Any who don't have farms will chop wood until they get some.
     
     a_num_vil_free_food=0;
     a_num_vil_farm=0;
@@ -632,10 +632,10 @@ for step=1:num_steps-1
         if (num_proposed_vil_farm+num_proposed_vil_free_food<=num_farms)
             a_num_vil_farm=num_proposed_vil_farm+num_proposed_vil_free_food;
             a_num_vil_free_food=0;
-            %vils that can't get food go to wood
         else
+            %vils that can't get food sit idle.
             a_num_vil_farm=num_farms;
-            a_num_vil_wood=a_num_vil_wood+num_proposed_vil_farm+num_proposed_vil_free_food-num_farms;
+            a_num_vil_idle=num_proposed_vil_farm+num_proposed_vil_free_food-num_farms;
             a_num_vil_free_food=0;
         end       
     else

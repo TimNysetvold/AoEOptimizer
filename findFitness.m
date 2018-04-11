@@ -4,8 +4,8 @@ function [fitness] = findFitness(spend,vils)
 % This one uses minimax.
 
 %This function needs scaling- PERHAPS.
-% spend_scaling=50;
-% spend=spend./spend_scaling;
+spend_scaling=50;
+spend=spend./spend_scaling;
 
 
 for i=1:length(spend)

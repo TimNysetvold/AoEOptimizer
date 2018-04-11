@@ -13,3 +13,7 @@ for count = 1:n
         child_2(count) = mother(count);
     end
 end
+
+% if count==n
+%     disp 'lol'
+% end
