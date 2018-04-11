@@ -18,13 +18,13 @@ num_techs=8;    %Currently, 8 techs are implemented
 % In each section, villagers will be randomly assigned to different
 % resources.
 
-num_vil_assignments=8;
+num_vil_assignments=4;
 
 for i=1:num_vil_assignments
     vil_assignments{i}=chromosome(max_Vils*(i-1)+1:max_Vils*i);
 end
-build_times=chromosome(max_Vils*num_vil_assignments+1:max_Vils*num_vil_assignments+num_buildings);
-tech_times=chromosome(max_Vils*num_vil_assignments+num_buildings+1:max_Vils*num_vil_assignments+num_buildings+num_techs);
+build_times=chromosome(end-num_buildings-num_techs+1:end-num_techs);
+tech_times=chromosome(end-num_techs+1:end);
 
 
 %% start static model

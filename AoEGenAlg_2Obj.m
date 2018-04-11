@@ -8,11 +8,11 @@ clear
 size_chromo = ChromosomeGenerator();
 num_buildings=8;
 num_techs=8;
-num_vil_divisions=8;
+num_vil_divisions=4;
 
 chromosome_size = length(size_chromo); 
 generation_size = 20; % must be an even number
-M = 500; % Total Number of generations
+M = 200; % Total Number of generations
 current_gen = 1;
 
 parent_chromos = zeros(generation_size,chromosome_size);
@@ -119,19 +119,20 @@ for master_counter=1:M
         end
 
         % Mutation
-        mut_prob = .2; % We can change
-        child_1 = blockMutation2(child_1, chromosome_size, M, current_gen, mut_prob,num_buildings,num_techs,num_vil_divisions,current_gen);
-        child_2 = blockMutation2(child_2, chromosome_size, M, current_gen, mut_prob,num_buildings,num_techs,num_vil_divisions,current_gen);
+        mut_prob = .05; % We can change
+        child_1 = blockMutation2(child_1, chromosome_size, M, current_gen, mut_prob,num_buildings,num_techs,num_vil_divisions);
+        child_2 = blockMutation2(child_2, chromosome_size, M, current_gen, mut_prob,num_buildings,num_techs,num_vil_divisions);
 
         %create next generation chromo matrix
         children_chromos(end+1,:)=child_1;
         children_chromos(end+1,:)=child_2;
-       
+        
 %% eliminate true duplicates. Consider changing this to delete 
 % all that have the same objective value.
-%         children_chromos=unique(children_chromos,'rows');
+%        children_chromos=unique(children_chromos,'rows');
     end
-        children_chromos=unique(children_chromos,'rows');
+
+    
     for i=1:generation_size
         for j=i+1:generation_size
             if isequal(children_chromos(i,:),children_chromos(j,:))
@@ -188,30 +189,16 @@ for master_counter=1:M
         parent_chromos(i,:)=candidates_chromos(index,:);
     end
     
-    for i=1:generation_size
-        for j=i+1:generation_size
-            if isequal(children_chromos(i,:),children_chromos(j,:))
-                disp 'fial'
-            end
-        end
-    end
+%     for i=1:generation_size
+%         for j=i+1:generation_size
+%             if isequal(children_chromos(i,:),children_chromos(j,:))
+%                 disp 'fial'
+%             end
+%         end
+%     end
     
     %% What is this for?
     %This is supposed to select genes for the new parents.
-    
-    %Old version
-%     refill_generation_chromos_counter = 1;
-%     if size(elitism_fitness,1)>=generation_size      
-%         for counter_4=size(elitism_fitness,1)-generation_size+1:size(elitism_fitness,1)
-% 
-%             generation_chromos(refill_generation_chromos_counter,:)=...
-%                 candidates_chromos(elitism_fitness(counter_4,2),:);
-%             fitness(refill_generation_chromos_counter,1) = elitism_fitness(counter_4,1);
-%             refill_generation_chromos_counter = refill_generation_chromos_counter+1;
-%         
-%         end  
-%     end
-
     candidates_chromos=[];
     current_gen = current_gen+1;
 end
@@ -231,7 +218,7 @@ for final_counter=1:size(parent_chromos,1)
 end
      final_f(:,5:6)=findFitness(final_f(:,1),final_f(:,2))
 
-% figure(2)
+figure(2)
 plot(final_f(:,2),final_f(:,1),'k*')
 axis([0 max(final_f(:,2))+5 0 max(final_f(:,1))+100])
 xlabel('Number of Villagers')

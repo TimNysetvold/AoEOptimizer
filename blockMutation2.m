@@ -1,4 +1,4 @@
-function child_mut = blockMutation2(child,chromosome_size,M,j,mut_prob,num_buildings,num_techs,num_vil_divisions,current_gen)
+function child_mut = blockMutation2(child,chromosome_size,total_generations,current_generation,mut_prob,num_buildings,num_techs,num_vil_divisions)
 
 num_blocks=num_vil_divisions+2;
 %1 block per vil division, plus one block per building/tech unit
@@ -28,6 +28,9 @@ mut_rand = rand(1);
 if mut_rand < mut_prob
     x_max = 6;
     new_block=ceil(x_max*rand(size_vil_division,1));
-    block_to_mut = (ceil(current_gen/total_steps-.99999));
-    child_mut(block_to_mut*size_vil_division+1:block_to_mut+1*size_vil_division)=new_block;
+    if(current_generation>1)
+        disp 'good'
+    end
+    block_to_mut = (ceil(current_generation*num_vil_divisions/total_generations));
+    child_mut(block_to_mut*size_vil_division+1:(block_to_mut+1)*size_vil_division)=new_block;
 end
